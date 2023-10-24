@@ -11,15 +11,14 @@
         android:id="@+id/imageView2"
         android:layout_width="wrap_content"
         android:layout_height="160dp"
-        android:src="@tools:sample/avatars"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@mipmap/Lotto_logo_polska" />
+        app:srcCompat="@drawable/lotto_logo_polska" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/selectNumbersText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Select your numbers"
@@ -29,17 +28,18 @@
         app:layout_constraintTop_toBottomOf="@+id/imageView2" />
 
     <NumberPicker
-        android:id="@+id/picker1"
+        android:id="@+id/numbersPicker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="16dp"
-        android:solidColor="#00FF00"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
-        tools:layout_editor_absoluteX="173dp" />
+        android:solidColor="#FFC107"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/selectNumbersText" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/selectButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="160dp"
@@ -49,7 +49,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.333"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/picker1" />
+        app:layout_constraintTop_toBottomOf="@+id/numbersPicker" />
 
     <TextView
         android:id="@+id/textView2"
@@ -57,7 +57,27 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Your numbers:"
-        app:layout_constraintTop_toBottomOf="@+id/button"
+        app:layout_constraintTop_toBottomOf="@+id/selectButton"
         tools:layout_editor_absoluteX="160dp" />
+
+    <Button
+        android:id="@+id/getRichButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="GET RICH!"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/selectedNumbersView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="TextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
