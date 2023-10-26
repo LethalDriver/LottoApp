@@ -16,7 +16,7 @@ class NumbDrawingActivity : AppCompatActivity() {
         var numbersString = intent.getIntArrayExtra("SELECTEDNUMBERS")?.joinToString(" ")
         displayNbTextView.text = numbersString
         val drawButton = findViewById<Button>(R.id.generateNbButton)
-        val displayGeneratedNb = findViewById<TextView>(R.id.displayNbTextView)
+        val displayGeneratedNb = findViewById<TextView>(R.id.generatedNumbersTextView)
         drawButton.setOnClickListener {
             displayGeneratedNb.text = drawNumbers().joinToString(" ")
         }
@@ -26,7 +26,7 @@ class NumbDrawingActivity : AppCompatActivity() {
     private fun drawNumbers(): IntArray{
         val drawnNumbers: IntArray = IntArray(6)
         var i = 0
-        while(i < 5){
+        while(i <= 5){
             var generatedNb = Random.nextInt(1, 49)
             if (generatedNb !in drawnNumbers){
                 drawnNumbers[i] = generatedNb
