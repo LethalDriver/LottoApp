@@ -4,7 +4,9 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="snackBarError">#FF3939</color>
-    <color name="snackBarCorrect">#3CFF45</color>
+    <color name="snackBarSuccessful">#3CFF45</color>
+
+    <color name="getRichButton">#FF0000</color>
 
 </resources>
 

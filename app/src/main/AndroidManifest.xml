@@ -13,6 +13,9 @@
         android:theme="@style/Theme.LottoApp"
         tools:targetApi="31">
         <activity
+            android:name=".BaseActivity"
+            android:exported="false" />
+        <activity
             android:name=".NumbDrawingActivity"
             android:exported="false" />
         <activity
