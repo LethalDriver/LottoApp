@@ -109,17 +109,19 @@ class NumbDrawingActivity : AppCompatActivity() {
         button.visibility = View.VISIBLE
     }
 
-    private fun drawNumbers(arrSize: Int = 6, randRange: Int = 49): IntArray{
-        val drawnNumbers: IntArray = IntArray(arrSize)
+    private fun drawNumbers(): IntArray{
+        val drawnNumbers: IntArray = IntArray(6)
         var i = 0
         while(i <= 5){
-            var generatedNb = Random.nextInt(1, randRange)
+            var generatedNb = Random.nextInt(1, 49)
+            if (generatedNb !in drawnNumbers){
                 drawnNumbers[i] = generatedNb
                 i++
+            }
         }
         return drawnNumbers
-
     }
+
 
 
 }
