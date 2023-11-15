@@ -10,9 +10,6 @@ import androidx.appcompat.app.AlertDialog
 
 class NumbSelectActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        val alertDialogBuilder = AlertDialog.Builder(this)
-        alertDialogBuilder.setTitle("Number already selected")
-        alertDialogBuilder.setMessage("You already selected this number, choose a different one.")
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.numb_layout)
