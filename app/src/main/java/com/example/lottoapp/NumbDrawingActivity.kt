@@ -10,8 +10,10 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.round
 import kotlin.random.Random
 
 
@@ -28,68 +30,77 @@ class NumbDrawingActivity : AppCompatActivity() {
             findViewById<Button>(R.id.button5),
             findViewById<Button>(R.id.button6)
         )
-        val prizePotTextView = findViewById<TextView>(R.id.prizePotTextView)
         val winningsTextView = findViewById<TextView>(R.id.winningsTextView)
         val sharedPref = getSharedPreferences("lotto_app_preferences", Context.MODE_PRIVATE)
         val editor = sharedPref.edit()
-        var prizePot: Float = sharedPref.getFloat("prizePot", 0.0f)
-        prizePotTextView.text = prizePot.toString()
         val intent = intent
         var selectedNumbers = intent.getIntArrayExtra("SELECTEDNUMBERS")
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
         progressBar.max = 6
-
         val delayTime: Long = 1000
 
         drawButton.setOnClickListener {
             var winnings: Float = 0.0f
             drawButton.isEnabled=false
-            prizePot += 100;
-            prizePotTextView.text = prizePot.toString()
-            var matchCounter = 0
-
-
             for (button in buttons) {
                 button.visibility = View.INVISIBLE
             }
+            var generatedNumbers = drawNumbers()
+            var matches: Int =
+                selectedNumbers?.toSet()?.intersect(generatedNumbers.toSet())?.count()!!
+
             GlobalScope.launch(Dispatchers.Main) {
-                var generatedNumbers = drawNumbers()
-                var progressStatus = 0
-                var isMatch: Boolean = false;
-                for (number in generatedNumbers){
-                    var button = buttons[progressStatus]
-                    if (selectedNumbers != null) isMatch = number in selectedNumbers
-                    if (isMatch) matchCounter++
-                    displayNumber(button, isMatch, number)
-                    progressStatus++
-                    progressBar.progress = progressStatus
-                    delay(delayTime)
+                updateUIWithGeneratedNumbers(generatedNumbers, buttons, selectedNumbers, progressBar, delayTime)
+
+            }
+
+            GlobalScope.launch(Dispatchers.Main) {
+                val winDeferred = async(Dispatchers.Default) {
+                    val winsNumb = simPlayers(doubleArrayOf(7.2e-8, 1.8e-5, 0.00097, 0.077))
+                    calculateWin(50e6, winsNumb, matches)
                 }
+                winningsTextView.text = winDeferred.await().toString()
                 drawButton.isEnabled = true
-                winnings = calculateWinnings(prizePot, matchCounter)
-                prizePot -= winnings
-                prizePotTextView.text = prizePot.toString()
-                winningsTextView.text = winnings.toString()
-                editor.putFloat("prizePot", prizePot)
-                editor.apply()
             }
         }
 
     }
-    private fun calculateWinnings(
-        prizePot: Float,
-        numbersMatchCount: Int
-    ): Float {
-        val winningRatios = mapOf(
-            0 to 0.0f,
-            1 to 0.01f,
-            2 to 0.03f,
-            3 to 0.05f,
-            4 to 0.1f,
-            5 to 0.3f,
-            6 to 1.0f
-        )
-        return prizePot * winningRatios[numbersMatchCount]!!
+
+    private suspend fun updateUIWithGeneratedNumbers(generatedNumbers: IntArray, buttons: List<Button>, selectedNumbers: IntArray,
+                                                     progressBar: ProgressBar, delayTime: Long) {
+        var progressStatus = 0
+        var isMatch: Boolean = false
+        for (number in generatedNumbers) {
+            var button = buttons[progressStatus]
+            if (selectedNumbers != null) isMatch = number in selectedNumbers
+            displayNumber(button, isMatch, number)
+            progressStatus++
+            progressBar.progress = progressStatus
+            delay(delayTime)
+        }
+
+    }
+    private fun calculateWin(cummulate: Double=0.0,
+                             winners: IntArray
+                             , score: Int = 0): Double {
+
+        return when (score) {
+            6 -> (cummulate * 0.44) / (winners[0] + 1)
+            5 -> (cummulate * 0.08) / winners[1] + 1
+            4 -> (cummulate * 0.48) / winners[2] + 1
+            3 -> (cummulate * 0.48) / winners[3] + 1
+            else -> 0.0
+        }
+    }
+
+    private fun simPlayers(probabilityArray: DoubleArray, numberOfPopulation: Int=38000000): IntArray {
+        val numberOfPlayers = Random.nextInt(numberOfPopulation)
+        val numberOfWins = IntArray(4)
+        for ((iterator, probability) in probabilityArray.withIndex()) {
+            var numberOfWinningPlayers = round(probability * numberOfPlayers).toInt()
+            numberOfWins[iterator] = numberOfWinningPlayers
+        }
+        return numberOfWins
     }
 
     private fun displayNumber(
@@ -125,3 +136,5 @@ class NumbDrawingActivity : AppCompatActivity() {
 
 
 }
+
+
