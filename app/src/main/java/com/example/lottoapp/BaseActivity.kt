@@ -7,7 +7,7 @@ import com.google.android.material.snackbar.Snackbar
 
 open class BaseActivity : AppCompatActivity() {
 
-    fun showErrorSnackBar(message: String, errorMessage: Boolean) {
+    fun showSnackBar(message: String, error: Boolean) {
         val snackbar = Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT)
         snackbar.setTextColor(
             ContextCompat.getColor(
@@ -15,7 +15,7 @@ open class BaseActivity : AppCompatActivity() {
                 R.color.white
             )
         )
-        if (errorMessage) {
+        if (error) {
             snackbar.setBackgroundTint(
                 ContextCompat.getColor(
                     this@BaseActivity,

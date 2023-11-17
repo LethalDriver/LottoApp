@@ -1,84 +1,105 @@
 package com.example.lottoapp
 
-import android.content.Context
+import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
-import android.widget.TextView
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.round
 import kotlin.random.Random
-
+import com.example.lottoapp.databinding.ActivityNumbDrawingBinding
+import com.google.firebase.firestore.FirebaseFirestore
 
 class NumbDrawingActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityNumbDrawingBinding
+    private lateinit var db: FirebaseFirestore
+    private val tag = "NumbDrawingActivity"
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_numb_drawing)
-        val drawButton = findViewById<Button>(R.id.generateNbButton)
-        val buttons = listOf(
-            findViewById<Button>(R.id.button1),
-            findViewById<Button>(R.id.button2),
-            findViewById<Button>(R.id.button3),
-            findViewById<Button>(R.id.button4),
-            findViewById<Button>(R.id.button5),
-            findViewById<Button>(R.id.button6)
-        )
-        val winningsTextView = findViewById<TextView>(R.id.winningsTextView)
-        val sharedPref = getSharedPreferences("lotto_app_preferences", Context.MODE_PRIVATE)
-        val editor = sharedPref.edit()
-        val intent = intent
+        binding = ActivityNumbDrawingBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        val user = intent.getParcelableExtra("user", User::class.java)
         var selectedNumbers = intent.getIntArrayExtra("SELECTEDNUMBERS")
-        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
-        progressBar.max = 6
+
+        db = FirebaseFirestore.getInstance()
+
+
+        binding.progressBar.max = 6
         val delayTime: Long = 1000
 
-        drawButton.setOnClickListener {
-            var winnings: Float = 0.0f
-            drawButton.isEnabled=false
-            for (button in buttons) {
+        val buttonsList = listOf(
+            binding.button1,
+            binding.button2,
+            binding.button3,
+            binding.button4,
+            binding.button5,
+            binding.button6
+        )
+
+        binding.generateNbButton.setOnClickListener {
+
+            var winnings: Double = 0.0
+            binding.generateNbButton.isEnabled = false
+
+
+
+            for (button in buttonsList)
                 button.visibility = View.INVISIBLE
-            }
+
             var generatedNumbers = drawNumbers()
             var matches: Int =
                 selectedNumbers?.toSet()?.intersect(generatedNumbers.toSet())?.count()!!
 
             GlobalScope.launch(Dispatchers.Main) {
-                updateUIWithGeneratedNumbers(generatedNumbers, buttons, selectedNumbers, progressBar, delayTime)
-
-            }
-
-            GlobalScope.launch(Dispatchers.Main) {
-                val winDeferred = async(Dispatchers.Default) {
-                    val winsNumb = simPlayers(doubleArrayOf(7.2e-8, 1.8e-5, 0.00097, 0.077))
-                    calculateWin(50e6, winsNumb, matches)
+                updateUIWithGeneratedNumbers(
+                    generatedNumbers,
+                    selectedNumbers,
+                    binding.progressBar,
+                    delayTime,
+                    buttonsList
+                )
+                val winsNumb = simPlayers(doubleArrayOf(7.2e-8, 1.8e-5, 0.00097, 0.077))
+                val win = calculateWin(50e6, winsNumb, matches)
+                binding.winningsTextView.text = "Winnings: ${win.toString()}zł"
+                if (user?.id != null){
+                    val userRef = db.collection("users").document(user.id!!)
+                    userRef.update("winnings", user.winnings + win)
                 }
-                winningsTextView.text = winDeferred.await().toString()
-                drawButton.isEnabled = true
+                binding.generateNbButton.isEnabled = true
             }
         }
 
     }
+}
 
-    private suspend fun updateUIWithGeneratedNumbers(generatedNumbers: IntArray, buttons: List<Button>, selectedNumbers: IntArray,
-                                                     progressBar: ProgressBar, delayTime: Long) {
+
+
+
+
+    private suspend fun updateUIWithGeneratedNumbers(generatedNumbers: IntArray, selectedNumbers: IntArray,
+                                                     progressBar: ProgressBar, delayTime: Long, buttonsList: List<Button>) {
         var progressStatus = 0
         var isMatch: Boolean = false
         for (number in generatedNumbers) {
-            var button = buttons[progressStatus]
+            var button = buttonsList[progressStatus]
             if (selectedNumbers != null) isMatch = number in selectedNumbers
             displayNumber(button, isMatch, number)
             progressStatus++
             progressBar.progress = progressStatus
             delay(delayTime)
         }
-
     }
     private fun calculateWin(cummulate: Double=0.0,
                              winners: IntArray
@@ -135,6 +156,5 @@ class NumbDrawingActivity : AppCompatActivity() {
 
 
 
-}
 
 

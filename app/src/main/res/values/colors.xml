@@ -3,10 +3,10 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="snackBarError">#FF3939</color>
-    <color name="snackBarSuccessful">#3CFF45</color>
+    <color name="snackBarError">#E53935</color>
+    <color name="snackBarSuccessful">#7CB342</color>
 
-    <color name="getRichButton">#FF0000</color>
+    <color name="getRichButton">#FFB300</color>
 
 </resources>
 

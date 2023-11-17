@@ -27,7 +27,7 @@
             android:label="@string/title_activity_numb_select"
             android:theme="@style/Theme.LottoApp" />
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
