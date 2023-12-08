@@ -6,14 +6,15 @@ import android.util.Log
 import android.util.Patterns.EMAIL_ADDRESS
 import android.view.View
 import com.example.lottoapp.databinding.ActivityRegisterBinding
+import com.example.lottoapp.firestore.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class RegisterActivity : BaseActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var binding: ActivityRegisterBinding
     private lateinit var db: FirebaseFirestore
+    private lateinit var binding: ActivityRegisterBinding
     private val tag = "RegisterActivity"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,23 +53,21 @@ class RegisterActivity : BaseActivity() {
                 .addOnCompleteListener(this) { task ->
 
                     if (task.isSuccessful) {
-
                         showSnackBar("User created successfully", false)
-
-                        val user = User(name = name, email = email)
-
-                        db.collection("users")
-                            .add(user)
-                            .addOnSuccessListener { documentReference ->
-                                Log.d(tag, "DocumentSnapshot added with ID: ${documentReference.id}")
-                                user.id = documentReference.id
-                                val intent = Intent(this@RegisterActivity, NumbSelectActivity::class.java)
-                                intent.putExtra("user", user)
-                                startActivity(intent)
-                            }
-                            .addOnFailureListener { e ->
-                                Log.w(tag, "Error adding document", e)
-                            }
+                        Log.d(tag, "User ${auth.currentUser?.uid} successfully")
+                        val currentUserId = auth.currentUser?.uid
+                        val user = User(auth.currentUser?.uid, name, email, true)
+                        if (currentUserId != null) {
+                            db.collection("users").document(currentUserId).set(user)
+                                .addOnSuccessListener {
+                                    val intent = Intent(this@RegisterActivity, NumbSelectActivity::class.java)
+                                    startActivity(intent)
+                                    finish()
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.w(tag, "Error adding user to firestore", e)
+                                }
+                        }
 
 
                     } else {

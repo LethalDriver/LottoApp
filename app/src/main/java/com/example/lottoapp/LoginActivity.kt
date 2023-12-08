@@ -6,6 +6,7 @@ import android.util.Log
 import android.util.Patterns
 import android.view.View
 import com.example.lottoapp.databinding.ActivityLoginBinding
+import com.example.lottoapp.firestore.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -40,26 +41,9 @@ class LoginActivity : BaseActivity() {
                 .addOnCompleteListener(this) { task ->
 
                     if (task.isSuccessful) {
-
-                        val usersRef = db.collection("users")
-                        val query = usersRef.whereEqualTo("email", email)
-
-                        query.get()
-                            .addOnSuccessListener { documents ->
-                                for (document in documents) {
-                                    val user = document.toObject(User::class.java)
-                                    user.id = document.id
-                                    val intent = Intent(this@LoginActivity, NumbSelectActivity::class.java)
-                                    intent.putExtra("user", user)
-                                    startActivity(intent)
-                                    Log.d(tag, "User: ${user.email} ${user.name}, winnings:  ${user.winnings}")
-                                }
-
-                            }
-                            .addOnFailureListener { exception ->
-                                Log.w(tag, "Error getting documents: ", exception)
-                            }
-
+                        intent = Intent(this, NumbSelectActivity::class.java)
+                        startActivity(intent)
+                        finish()
 
                     } else {
                         Log.w(tag, "Error signing in: ", task.exception)

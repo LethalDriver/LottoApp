@@ -1,6 +1,5 @@
 package com.example.lottoapp
 
-import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -17,24 +16,43 @@ import kotlinx.coroutines.launch
 import kotlin.math.round
 import kotlin.random.Random
 import com.example.lottoapp.databinding.ActivityNumbDrawingBinding
+import com.example.lottoapp.firestore.FireStoreData
+import com.example.lottoapp.firestore.User
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
 
 class NumbDrawingActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityNumbDrawingBinding
+    private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
-    private val tag = "NumbDrawingActivity"
+    private lateinit var binding: ActivityNumbDrawingBinding
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityNumbDrawingBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        val user = intent.getParcelableExtra("user", User::class.java)
-        var selectedNumbers = intent.getIntArrayExtra("SELECTEDNUMBERS")
-
+        auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
+        var selectedNumbers: IntArray? = IntArray(6)
+
+        val currentUserUid = auth.currentUser?.uid
+
+        currentUserUid?.let {
+            db.collection("usersNumbers")
+                .document(it)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    if (documentSnapshot.exists()) {
+                        val dbData = documentSnapshot.toObject<FireStoreData>()
+                        selectedNumbers=dbData?.selNumb?.toIntArray()
+                    }
+                }
+                .addOnFailureListener { e ->
+                    println("Error getting document usersNumbers - " +
+                            "${FirebaseAuth.getInstance().currentUser?.email}: $e")
+                }
+        }
 
         binding.progressBar.max = 6
         val delayTime: Long = 1000
@@ -65,7 +83,7 @@ class NumbDrawingActivity : AppCompatActivity() {
             GlobalScope.launch(Dispatchers.Main) {
                 updateUIWithGeneratedNumbers(
                     generatedNumbers,
-                    selectedNumbers,
+                    selectedNumbers!!,
                     binding.progressBar,
                     delayTime,
                     buttonsList
@@ -73,10 +91,24 @@ class NumbDrawingActivity : AppCompatActivity() {
                 val winsNumb = simPlayers(doubleArrayOf(7.2e-8, 1.8e-5, 0.00097, 0.077))
                 val win = calculateWin(50e6, winsNumb, matches)
                 binding.winningsTextView.text = "Winnings: ${win.toString()}zł"
-                if (user?.id != null){
-                    val userRef = db.collection("users").document(user.id!!)
-                    userRef.update("winnings", user.winnings + win)
+
+                val updates = mapOf(
+                    "win" to win,
+                    "drawNumb" to generatedNumbers.toList()
+                )
+
+                auth.currentUser?.uid?.let { it1 ->
+                    db.collection("usersNumbers")
+                        .document(it1)
+                        .update(updates)
+                        .addOnSuccessListener {
+                            Log.d("NumbDrawingActivity", "DocumentSnapshot successfully updated!")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w("NumbDrawingActivity", "Error updating document", e)
+                        }
                 }
+
                 binding.generateNbButton.isEnabled = true
             }
         }
