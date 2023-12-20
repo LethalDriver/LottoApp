@@ -21,12 +21,15 @@ import com.example.lottoapp.firestore.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 class NumbDrawingActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var binding: ActivityNumbDrawingBinding
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityNumbDrawingBinding.inflate(layoutInflater)
@@ -34,9 +37,11 @@ class NumbDrawingActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        var selectedNumbers: IntArray? = IntArray(6)
+        val dataToSave = FireStoreData()
 
+        var selectedNumbers: IntArray? = IntArray(6)
         val currentUserUid = auth.currentUser?.uid
+        val currentUserEmail = auth.currentUser?.email
 
         currentUserUid?.let {
             db.collection("usersNumbers")
@@ -97,16 +102,24 @@ class NumbDrawingActivity : AppCompatActivity() {
                     "drawNumb" to generatedNumbers.toList()
                 )
 
+                dataToSave.email = currentUserEmail
+                dataToSave.selNumb = selectedNumbers?.toList()
+                dataToSave.drawNumb = generatedNumbers.toList()
+                dataToSave.win = win
+
                 auth.currentUser?.uid?.let { it1 ->
-                    db.collection("usersNumbers")
+                    db.collection("userGames")
                         .document(it1)
-                        .update(updates)
+                        .collection("games")
+                        .document(LocalDateTime.now().toString())
+                        .set(dataToSave)
                         .addOnSuccessListener {
                             Log.d("NumbDrawingActivity", "DocumentSnapshot successfully updated!")
                         }
                         .addOnFailureListener { e ->
                             Log.w("NumbDrawingActivity", "Error updating document", e)
                         }
+
                 }
 
                 binding.generateNbButton.isEnabled = true
@@ -115,9 +128,6 @@ class NumbDrawingActivity : AppCompatActivity() {
 
     }
 }
-
-
-
 
 
     private suspend fun updateUIWithGeneratedNumbers(generatedNumbers: IntArray, selectedNumbers: IntArray,

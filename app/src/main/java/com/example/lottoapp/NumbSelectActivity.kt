@@ -29,7 +29,6 @@ class NumbSelectActivity : BaseActivity() {
 
         val currentUserUid = auth.currentUser?.uid
 
-
         db.collection("users").document(currentUserUid!!).get()
             .addOnSuccessListener { document ->
                 if (document != null) {
