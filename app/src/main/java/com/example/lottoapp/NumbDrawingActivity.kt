@@ -1,5 +1,6 @@
 package com.example.lottoapp
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -17,11 +18,10 @@ import kotlin.math.round
 import kotlin.random.Random
 import com.example.lottoapp.databinding.ActivityNumbDrawingBinding
 import com.example.lottoapp.firestore.FireStoreData
-import com.example.lottoapp.firestore.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
-import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.LocalDateTime
 
 class NumbDrawingActivity : AppCompatActivity() {
@@ -42,6 +42,7 @@ class NumbDrawingActivity : AppCompatActivity() {
         var selectedNumbers: IntArray? = IntArray(6)
         val currentUserUid = auth.currentUser?.uid
         val currentUserEmail = auth.currentUser?.email
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
         currentUserUid?.let {
             db.collection("usersNumbers")
@@ -62,6 +63,8 @@ class NumbDrawingActivity : AppCompatActivity() {
         binding.progressBar.max = 6
         val delayTime: Long = 1000
 
+        binding.buttonStatistics.isEnabled = false
+
         val buttonsList = listOf(
             binding.button1,
             binding.button2,
@@ -81,8 +84,8 @@ class NumbDrawingActivity : AppCompatActivity() {
             for (button in buttonsList)
                 button.visibility = View.INVISIBLE
 
-            var generatedNumbers = drawNumbers()
-            var matches: Int =
+            val generatedNumbers = drawNumbers()
+            val matches: Int =
                 selectedNumbers?.toSet()?.intersect(generatedNumbers.toSet())?.count()!!
 
             GlobalScope.launch(Dispatchers.Main) {
@@ -107,11 +110,14 @@ class NumbDrawingActivity : AppCompatActivity() {
                 dataToSave.drawNumb = generatedNumbers.toList()
                 dataToSave.win = win
 
+                val formattedDate = LocalDateTime.now().format(formatter)
+
+
                 auth.currentUser?.uid?.let { it1 ->
                     db.collection("userGames")
                         .document(it1)
                         .collection("games")
-                        .document(LocalDateTime.now().toString())
+                        .document(formattedDate)
                         .set(dataToSave)
                         .addOnSuccessListener {
                             Log.d("NumbDrawingActivity", "DocumentSnapshot successfully updated!")
@@ -123,9 +129,14 @@ class NumbDrawingActivity : AppCompatActivity() {
                 }
 
                 binding.generateNbButton.isEnabled = true
+                binding.buttonStatistics.isEnabled = true
             }
         }
 
+        binding.buttonStatistics.setOnClickListener {
+            val intent = Intent(this@NumbDrawingActivity, StatisticsActivity::class.java)
+            startActivity(intent)
+        }
     }
 }
 
@@ -135,8 +146,8 @@ class NumbDrawingActivity : AppCompatActivity() {
         var progressStatus = 0
         var isMatch: Boolean = false
         for (number in generatedNumbers) {
-            var button = buttonsList[progressStatus]
-            if (selectedNumbers != null) isMatch = number in selectedNumbers
+            val button = buttonsList[progressStatus]
+            isMatch = number in selectedNumbers
             displayNumber(button, isMatch, number)
             progressStatus++
             progressBar.progress = progressStatus
@@ -187,7 +198,7 @@ class NumbDrawingActivity : AppCompatActivity() {
         val drawnNumbers: IntArray = IntArray(6)
         var i = 0
         while(i <= 5){
-            var generatedNb = Random.nextInt(1, 49)
+            val generatedNb = Random.nextInt(1, 49)
             if (generatedNb !in drawnNumbers){
                 drawnNumbers[i] = generatedNb
                 i++

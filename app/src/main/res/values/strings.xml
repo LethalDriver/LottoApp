@@ -11,4 +11,6 @@
     <string name="title_activity_numb_drawing">numbDrawingActivity</string>
     <string name="title_activity_main2">MainActivity2</string>
     <string name="title_activity_numb_select">numbSelectActivity</string>
+    <string name="statistics">Statistics</string>
+    <string name="generate_numbers">Generate numbers</string>
 </resources>
